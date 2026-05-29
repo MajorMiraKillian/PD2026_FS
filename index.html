@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Simulator Piala Dunia 2026 - Cloud Database Sync</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #060b14; color: #fff; padding: 20px; }
+        header { text-align: center; padding: 30px; border-bottom: 3px solid #00df89; }
+        h1 { color: #00df89; font-size: 32px; text-transform: uppercase; letter-spacing: 1px; }
+        p { color: #8fa0bc; margin-top: 5px; font-size: 14px; }
+        
+        nav {
+            position: sticky; top: 0; background: rgba(6, 11, 20, 0.95);
+            padding: 15px; display: flex; flex-wrap: wrap; gap: 8px;
+            justify-content: center; z-index: 100; backdrop-filter: blur(5px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        nav a { color: #fff; text-decoration: none; padding: 6px 12px; background: #12223c; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        nav a:hover { background: #29b6f6; color: #000; }
+        nav a.ko-nav { background: #ffca28; color: #000; }
+
+        .container { max-width: 1600px; margin: 30px auto; display: flex; flex-direction: column; gap: 40px; }
+        .grup-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 30px; }
+        .grup-box { background: #0f192a; border: 1px solid #23395b; border-radius: 8px; padding: 20px; scroll-margin-top: 130px; }
+        .grup-box h3 { color: #29b6f6; border-bottom: 2px solid #29b6f6; padding-bottom: 5px; margin-bottom: 15px; text-transform: uppercase; }
+        
+        .match-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .match-meta { font-size: 11px; color: #8fa0bc; width: 160px; line-height: 1.4; }
+        .match-meta span { display: block; color: #ffca28; font-size: 10px; }
+        .score-inputs { display: flex; align-items: center; gap: 8px; }
+        .team-name { width: 120px; font-size: 13px; font-weight: 500; }
+        .team-name.left { text-align: right; }
+        .inp-score { width: 38px; height: 30px; background: #1a2f4c; border: 1px solid #29b6f6; color: #fff; text-align: center; font-weight: bold; border-radius: 4px; font-size: 14px; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
+        th, td { padding: 8px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        th { background: rgba(41, 182, 246, 0.1); color: #29b6f6; }
+        
+        .p3-section { background: #110d1a; border: 2px solid #aa66cc; padding: 20px; border-radius: 8px; scroll-margin-top: 130px; }
+        .p3-section h3 { color: #aa66cc; margin-bottom: 10px; text-transform: uppercase; }
+
+        .ko-section { background: #0b0f17; border: 2px solid #ffca28; padding: 20px; border-radius: 8px; scroll-margin-top: 130px; }
+        .ko-section h2 { color: #ffca28; text-align: center; margin-bottom: 30px; text-transform: uppercase; }
+        .ko-stage-block { background: #121824; padding: 15px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 25px; }
+        .ko-stage-block h4 { color: #ffca28; margin-bottom: 15px; border-bottom: 1px solid rgba(255,202,40,0.3); padding-bottom: 5px; }
+        
+        .ko-grid-matches { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 15px; }
+        .ko-match-card { background: #1a2233; border: 1px solid #334466; padding: 12px; border-radius: 6px; }
+        .ko-vs-zone { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+        .ko-team-line { display: flex; justify-content: space-between; align-items: center; }
+        .ko-team-line span { font-size: 13px; font-weight: bold; }
+        .stadium-info { font-size: 10px; color: #8fa0bc; margin-top: 5px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 4px; }
+
+        .final-arena { display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 25px; margin-top: 10px; }
+        .final-card-epic { background: rgba(0, 0, 0, 0.6); border: 2px solid #ffd700; border-radius: 10px; padding: 20px; }
+        .final-title-badge { font-size: 15px; color: #ffd700; font-weight: 900; text-align: center; margin-bottom: 15px; text-transform: uppercase; }
+        .final-vs-zone { display: flex; flex-direction: column; gap: 15px; }
+        .final-team-row { display: flex; justify-content: space-between; align-items: center; }
+        .final-team-row span { font-size: 16px; font-weight: 800; }
+        .final-score-input { width: 55px; height: 45px; background: #222; border: 2px solid #ffd700; color: #ffd700; text-align: center; font-size: 22px; font-weight: 900; border-radius: 6px; }
+        .card-3rd { border-color: #c0c0c0; }
+        .card-3rd .final-title-badge { color: #b87333; }
+        .card-3rd .final-score-input { border-color: #c0c0c0; color: #fff; }
+
+        .champion-podium-box {
+            margin: 40px auto 20px auto; max-width: 600px;
+            background: linear-gradient(135deg, #1b2845 0%, #080f1d 100%);
+            border: 3px solid #ffd700; border-radius: 12px; padding: 35px 20px;
+            text-align: center; box-shadow: 0 0 25px rgba(255, 215, 0, 0.4);
+            display: none; animation: goldGlow 3s infinite alternate;
+        }
+        @keyframes goldGlow {
+            0% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); border-color: #ffd700; }
+            100% { box-shadow: 0 0 40px rgba(255, 215, 0, 0.8); border-color: #fff4b8; }
+        }
+        .champion-badge { font-size: 14px; color: #ffd700; text-transform: uppercase; letter-spacing: 5px; font-weight: 900; margin-bottom: 12px; }
+        .champion-team-name { font-size: 42px; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.6), 0 0 25px rgba(255, 215, 0, 0.9); text-transform: uppercase; letter-spacing: 2px; margin: 15px 0; animation: pulseText 1.5s infinite alternate; }
+        @keyframes pulseText { 0% { transform: scale(0.97); } 100% { transform: scale(1.03); } }
+        .star-ornaments { color: #ffd700; font-size: 24px; letter-spacing: 8px; }
+        
+        /* Notifikasi Cloud Sync Indicator */
+        .sync-status {
+            position: fixed; bottom: 20px; right: 20px; background: rgba(0, 223, 137, 0.9);
+            color: #000; padding: 8px 16px; border-radius: 20px; font-size: 12px;
+            font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 1000;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Simulator Piala Dunia 2026</h1>
+        <p>Mode Cloud Database - Sinkronisasi Otomatis Antar Perangkat & Browser</p>
+    </header>
+
+    <nav>
+        <a href="#grup-area">FASE GRUP</a>
+        <a href="#pos-p3">KLASEMEN P3</a>
+        <a href="#fase-gugur" class="ko-nav">BAGAN FASE GUGUR LENGKAP</a>
+    </nav>
+
+    <div class="sync-status" id="cloudSyncStatus">🔄 Tersinkron ke Cloud...</div>
+
+    <div class="container">
+        <div class="grup-grid" id="grup-area">
+            <div class="grup-box" id="grp_A">
+                <h3>GRUP A</h3>
+                <div class="match-row"><span class="match-meta">Jumat, 12 Jun - 02:00<span>Azteca, Mexico City</span></span><div class="score-inputs"><span class="team-name left">Meksiko</span><input type="number" class="inp-score" id="s_A_0_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_A_0_2" oninput="triggerSimpanCloud()"><span class="team-name right">Afrika Selatan</span></div></div>
+                <div class="match-row"><span class="match-meta">Jumat, 12 Jun - 09:00<span>Akron, Guadalajara</span></span><div class="score-inputs"><span class="team-name left">Korea Selatan</span><input type="number" class="inp-score" id="s_A_1_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_A_1_2" oninput="triggerSimpanCloud()"><span class="team-name right">Rep. Ceko</span></div></div>
+                <div class="match-row"><span class="match-meta">Kamis, 18 Jun - 23:00<span>Mercedes-Benz, Atlanta</span></span><div class="score-inputs"><span class="team-name left">Rep. Ceko</span><input type="number" class="inp-score" id="s_A_2_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_A_2_2" oninput="triggerSimpanCloud()"><span class="team-name right">Afrika Selatan</span></div></div>
+                <div class="match-row"><span class="match-meta">Jumat, 19 Jun - 08:00<span>Akron, Guadalajara</span></span><div class="score-inputs"><span class="team-name left">Meksiko</span><input type="number" class="inp-score" id="s_A_3_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_A_3_2" oninput="triggerSimpanCloud()"><span class="team-name right">Korea Selatan</span></div></div>
+                <div class="match-row"><span class="match-meta">Kamis, 25 Jun - 08:00<span>Azteca, Mexico City</span></span><div class="score-inputs"><span class="team-name left">Rep. Ceko</span><input type="number" class="inp-score" id="s_A_4_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_A_4_2" oninput="triggerSimpanCloud()"><span class="team-name right">Meksiko</span></div></div>
+                <div class="match-row"><span class="match-meta">Kamis, 25 Jun - 08:00<span>BBVA, Monterrey</span></span><div class="score-inputs"><span class="team-name left">Afrika Selatan</span><input type="number" class="inp-score" id="s_A_5_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_A_5_2" oninput="triggerSimpanCloud()"><span class="team-name right">Korea Selatan</span></div></div>
+                <table><thead><tr><th>Pos</th><th style="text-align:left">Tim</th><th>Mn</th><th>W</th><th>D</th><th>L</th><th>GM</th><th>GK</th><th>SG</th><th>Pts</th></tr></thead><tbody id="tbody_A"></tbody></table>
+            </div>
+
+            <div class="grup-box" id="grp_B">
+                <h3>GRUP B</h3>
+                <div class="match-row"><span class="match-meta">Sabtu, 13 Jun - 02:00<span>BMO Field, Toronto</span></span><div class="score-inputs"><span class="team-name left">Kanada</span><input type="number" class="inp-score" id="s_B_0_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_B_0_2" oninput="triggerSimpanCloud()"><span class="team-name right">Bosnia & Herz.</span></div></div>
+                <div class="match-row"><span class="match-meta">Minggu, 14 Jun - 02:00<span>Levi's, SF Bay Area</span></span><div class="score-inputs"><span class="team-name left">Qatar</span><input type="number" class="inp-score" id="s_B_1_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_B_1_2" oninput="triggerSimpanCloud()"><span class="team-name right">Swiss</span></div></div>
+                <div class="match-row"><span class="match-meta">Jumat, 19 Jun - 02:00<span>SoFi, Los Angeles</span></span><div class="score-inputs"><span class="team-name left">Swiss</span><input type="number" class="inp-score" id="s_B_2_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_B_2_2" oninput="triggerSimpanCloud()"><span class="team-name right">Bosnia & Herz.</span></div></div>
+                <div class="match-row"><span class="match-meta">Jumat, 19 Jun - 05:00<span>BC Place, Vancouver</span></span><div class="score-inputs"><span class="team-name left">Kanada</span><input type="number" class="inp-score" id="s_B_3_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_B_3_2" oninput="triggerSimpanCloud()"><span class="team-name right">Qatar</span></div></div>
+                <div class="match-row"><span class="match-meta">Kamis, 25 Jun - 02:00<span>BC Place, Vancouver</span></span><div class="score-inputs"><span class="team-name left">Swiss</span><input type="number" class="inp-score" id="s_B_4_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_B_4_2" oninput="triggerSimpanCloud()"><span class="team-name right">Kanada</span></div></div>
+                <div class="match-row"><span class="match-meta">Kamis, 25 Jun - 02:00<span>Lumen Field, Seattle</span></span><div class="score-inputs"><span class="team-name left">Bosnia & Herz.</span><input type="number" class="inp-score" id="s_B_5_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_B_5_2" oninput="triggerSimpanCloud()"><span class="team-name right">Qatar</span></div></div>
+                <table><thead><tr><th>Pos</th><th style="text-align:left">Tim</th><th>Mn</th><th>W</th><th>D</th><th>L</th><th>GM</th><th>GK</th><th>SG</th><th>Pts</th></tr></thead><tbody id="tbody_B"></tbody></table>
+            </div>
+
+            <div class="grup-box" id="grp_C">
+                <h3>GRUP C</h3>
+                <div class="match-row"><span class="match-meta">Minggu, 14 Jun - 05:00<span>MetLife, NY/NJ</span></span><div class="score-inputs"><span class="team-name left">Brasil</span><input type="number" class="inp-score" id="s_C_0_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_C_0_2" oninput="triggerSimpanCloud()"><span class="team-name right">Maroko</span></div></div>
+                <div class="match-row"><span class="match-meta">Minggu, 14 Jun - 08:00<span>Gillette, Boston</span></span><div class="score-inputs"><span class="team-name left">Haiti</span><input type="number" class="inp-score" id="s_C_1_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_C_1_2" oninput="triggerSimpanCloud()"><span class="team-name right">Skotlandia</span></div></div>
+                <div class="match-row"><span class="match-meta">Sabtu, 20 Jun - 05:00<span>Gillette, Boston</span></span><div class="score-inputs"><span class="team-name left">Skotlandia</span><input type="number" class="inp-score" id="s_C_2_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_C_2_2" oninput="triggerSimpanCloud()"><span class="team-name right">Maroko</span></div></div>
+                <div class="match-row"><span class="match-meta">Sabtu, 20 Jun - 07:30<span>Lincoln Fin., Philly</span></span><div class="score-inputs"><span class="team-name left">Brasil</span><input type="number" class="inp-score" id="s_C_3_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_C_3_2" oninput="triggerSimpanCloud()"><span class="team-name right">Haiti</span></div></div>
+                <div class="match-row"><span class="match-meta">Kamis, 25 Jun - 05:00<span>Hard Rock, Miami</span></span><div class="score-inputs"><span class="team-name left">Skotlandia</span><input type="number" class="inp-score" id="s_C_4_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_C_4_2" oninput="triggerSimpanCloud()"><span class="team-name right">Brasil</span></div></div>
+                <div class="match-row"><span class="match-meta">Kamis, 25 Jun - 05:00<span>Mercedes-Benz, Atlanta</span></span><div class="score-inputs"><span class="team-name left">Maroko</span><input type="number" class="inp-score" id="s_C_5_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_C_5_2" oninput="triggerSimpanCloud()"><span class="team-name right">Haiti</span></div></div>
+                <table><thead><tr><th>Pos</th><th style="text-align:left">Tim</th><th>Mn</th><th>W</th><th>D</th><th>L</th><th>GM</th><th>GK</th><th>SG</th><th>Pts</th></tr></thead><tbody id="tbody_C"></tbody></table>
+            </div>
+
+            <div class="grup-box" id="grp_D">
+                <h3>GRUP D</h3>
+                <div class="match-row"><span class="match-meta">Sabtu, 13 Jun - 08:00<span>SoFi, Los Angeles</span></span><div class="score-inputs"><span class="team-name left">AS</span><input type="number" class="inp-score" id="s_D_0_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_D_0_2" oninput="triggerSimpanCloud()"><span class="team-name right">Paraguay</span></div></div>
+                <div class="match-row"><span class="match-meta">Minggu, 14 Jun - 11:00<span>BC Place, Vancouver</span></span><div class="score-inputs"><span class="team-name left">Australia</span><input type="number" class="inp-score" id="s_D_1_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_D_1_2" oninput="triggerSimpanCloud()"><span class="team-name right">Turki</span></div></div>
+                <div class="match-row"><span class="match-meta">Sabtu, 20 Jun - 02:00<span>Lumen Field, Seattle</span></span><div class="score-inputs"><span class="team-name left">AS</span><input type="number" class="inp-score" id="s_D_2_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_D_2_2" oninput="triggerSimpanCloud()"><span class="team-name right">Australia</span></div></div>
+                <div class="match-row"><span class="match-meta">Sabtu, 20 Jun - 10:00<span>Levi's, SF Bay Area</span></span><div class="score-inputs"><span class="team-name left">Turki</span><input type="number" class="inp-score" id="s_D_3_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_D_3_2" oninput="triggerSimpanCloud()"><span class="team-name right">Paraguay</span></div></div>
+                <div class="match-row"><span class="match-meta">Jumat, 26 Jun - 09:00<span>SoFi, Los Angeles</span></span><div class="score-inputs"><span class="team-name left">Turki</span><input type="number" class="inp-score" id="s_D_4_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_D_4_2" oninput="triggerSimpanCloud()"><span class="team-name right">AS</span></div></div>
+                <div class="match-row"><span class="match-meta">Jumat, 26 Jun - 09:00<span>Levi's, SF Bay Area</span></span><div class="score-inputs"><span class="team-name left">Paraguay</span><input type="number" class="inp-score" id="s_D_5_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_D_5_2" oninput="triggerSimpanCloud()"><span class="team-name right">Australia</span></div></div>
+                <table><thead><tr><th>Pos</th><th style="text-align:left">Tim</th><th>Mn</th><th>W</th><th>D</th><th>L</th><th>GM</th><th>GK</th><th>SG</th><th>Pts</th></tr></thead><tbody id="tbody_D"></tbody></table>
+            </div>
+
+            <div class="grup-box" id="grp_E">
+                <h3>GRUP E</h3>
+                <div class="match-row"><span class="match-meta">Senin, 15 Jun - 00:00<span>NRG, Houston</span></span><div class="score-inputs"><span class="team-name left">Jerman</span><input type="number" class="inp-score" id="s_E_0_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_E_0_2" oninput="triggerSimpanCloud()"><span class="team-name right">Curaçao</span></div></div>
+                <div class="match-row"><span class="match-meta">Senin, 15 Jun - 06:00<span>Lincoln Fin., Philly</span></span><div class="score-inputs"><span class="team-name left">Pantai Gading</span><input type="number" class="inp-score" id="s_E_1_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_E_1_2" oninput="triggerSimpanCloud()"><span class="team-name right">Ekuador</span></div></div>
+                <div class="match-row"><span class="match-meta">Minggu, 21 Jun - 03:00<span>BMO Field, Toronto</span></span><div class="score-inputs"><span class="team-name left">Jerman</span><input type="number" class="inp-score" id="s_E_2_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_E_2_2" oninput="triggerSimpanCloud()"><span class="team-name right">Pantai Gading</span></div></div>
+                <div class="match-row"><span class="match-meta">Minggu, 21 Jun - 07:00<span>Arrowhead, Kansas</span></span><div class="score-inputs"><span class="team-name left">Ekuador</span><input type="number" class="inp-score" id="s_E_3_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_E_3_2" oninput="triggerSimpanCloud()"><span class="team-name right">Curaçao</span></div></div>
+                <div class="match-row"><span class="match-meta">Jumat, 26 Jun - 03:00<span>Lincoln Fin., Philly</span></span><div class="score-inputs"><span class="team-name left">Curaçao</span><input type="number" class="inp-score" id="s_E_4_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_E_4_2" oninput="triggerSimpanCloud()"><span class="team-name right">Pantai Gading</span></div></div>
+                <div class="match-row"><span class="match-meta">Jumat, 26 Jun - 03:00<span>MetLife, NY/NJ</span></span><div class="score-inputs"><span class="team-name left">Ekuador</span><input type="number" class="inp-score" id="s_E_5_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_E_5_2" oninput="triggerSimpanCloud()"><span class="team-name right">Jerman</span></div></div>
+                <table><thead><tr><th>Pos</th><th style="text-align:left">Tim</th><th>Mn</th><th>W</th><th>D</th><th>L</th><th>GM</th><th>GK</th><th>SG</th><th>Pts</th></tr></thead><tbody id="tbody_E"></tbody></table>
+            </div>
+
+            <div class="grup-box" id="grp_F">
+                <h3>GRUP F</h3>
+                <div class="match-row"><span class="match-meta">Senin, 15 Jun - 03:00<span>AT&T, Dallas</span></span><div class="score-inputs"><span class="team-name left">Belanda</span><input type="number" class="inp-score" id="s_F_0_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_F_0_2" oninput="triggerSimpanCloud()"><span class="team-name right">Jepang</span></div></div>
+                <div class="match-row"><span class="match-meta">Senin, 15 Jun - 09:00<span>BBVA, Monterrey</span></span><div class="score-inputs"><span class="team-name left">Swedia</span><input type="number" class="inp-score" id="s_F_1_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_F_1_2" oninput="triggerSimpanCloud()"><span class="team-name right">Tunisia</span></div></div>
+                <div class="match-row"><span class="match-meta">Minggu, 21 Jun - 00:00<span>NRG, Houston</span></span><div class="score-inputs"><span class="team-name left">Belanda</span><input type="number" class="inp-score" id="s_F_2_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_F_2_2" oninput="triggerSimpanCloud()"><span class="team-name right">Swedia</span></div></div>
+                <div class="match-row"><span class="match-meta">Minggu, 21 Jun - 11:00<span>BBVA, Monterrey</span></span><div class="score-inputs"><span class="team-name left">Tunisia</span><input type="number" class="inp-score" id="s_F_3_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_F_3_2" oninput="triggerSimpanCloud()"><span class="team-name right">Jepang</span></div></div>
+                <div class="match-row"><span class="match-meta">Jumat, 26 Jun - 06:00<span>AT&T, Dallas</span></span><div class="score-inputs"><span class="team-name left">Jepang</span><input type="number" class="inp-score" id="s_F_4_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_F_4_2" oninput="triggerSimpanCloud()"><span class="team-name right">Swedia</span></div></div>
+                <div class="match-row"><span class="match-meta">Jumat, 26 Jun - 06:00<span>Arrowhead, Kansas</span></span><div class="score-inputs"><span class="team-name left">Tunisia</span><input type="number" class="inp-score" id="s_F_5_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_F_5_2" oninput="triggerSimpanCloud()"><span class="team-name right">Belanda</span></div></div>
+                <table><thead><tr><th>Pos</th><th style="text-align:left">Tim</th><th>Mn</th><th>W</th><th>D</th><th>L</th><th>GM</th><th>GK</th><th>SG</th><th>Pts</th></tr></thead><tbody id="tbody_F"></tbody></table>
+            </div>
+
+            <div class="grup-box" id="grp_G">
+                <h3>GRUP G</h3>
+                <div class="match-row"><span class="match-meta">Selasa, 16 Jun - 02:00<span>Lumen Field, Seattle</span></span><div class="score-inputs"><span class="team-name left">Belgia</span><input type="number" class="inp-score" id="s_G_0_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_G_0_2" oninput="triggerSimpanCloud()"><span class="team-name right">Mesir</span></div></div>
+                <div class="match-row"><span class="match-meta">Selasa, 16 Jun - 08:00<span>SoFi, Los Angeles</span></span><div class="score-inputs"><span class="team-name left">Iran</span><input type="number" class="inp-score" id="s_G_1_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_G_1_2" oninput="triggerSimpanCloud()"><span class="team-name right">Selandia Baru</span></div></div>
+                <div class="match-row"><span class="match-meta">Senin, 22 Jun - 02:00<span>SoFi, Los Angeles</span></span><div class="score-inputs"><span class="team-name left">Belgia</span><input type="number" class="inp-score" id="s_G_2_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_G_2_2" oninput="triggerSimpanCloud()"><span class="team-name right">Iran</span></div></div>
+                <div class="match-row"><span class="match-meta">Senin, 22 Jun - 08:00<span>BC Place, Vancouver</span></span><div class="score-inputs"><span class="team-name left">Selandia Baru</span><input type="number" class="inp-score" id="s_G_3_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_G_3_2" oninput="triggerSimpanCloud()"><span class="team-name right">Mesir</span></div></div>
+                <div class="match-row"><span class="match-meta">Sabtu, 27 Jun - 10:00<span>Lumen Field, Seattle</span></span><div class="score-inputs"><span class="team-name left">Mesir</span><input type="number" class="inp-score" id="s_G_4_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_G_4_2" oninput="triggerSimpanCloud()"><span class="team-name right">Iran</span></div></div>
+                <div class="match-row"><span class="match-meta">Sabtu, 27 Jun - 10:00<span>BC Place, Vancouver</span></span><div class="score-inputs"><span class="team-name left">Selandia Baru</span><input type="number" class="inp-score" id="s_G_5_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_G_5_2" oninput="triggerSimpanCloud()"><span class="team-name right">Belgia</span></div></div>
+                <table><thead><tr><th>Pos</th><th style="text-align:left">Tim</th><th>Mn</th><th>W</th><th>D</th><th>L</th><th>GM</th><th>GK</th><th>SG</th><th>Pts</th></tr></thead><tbody id="tbody_G"></tbody></table>
+            </div>
+
+            <div class="grup-box" id="grp_H">
+                <h3>GRUP H</h3>
+                <div class="match-row"><span class="match-meta">Senin, 15 Jun - 23:00<span>Mercedes-Benz, Atlanta</span></span><div class="score-inputs"><span class="team-name left">Spanyol</span><input type="number" class="inp-score" id="s_H_0_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_H_0_2" oninput="triggerSimpanCloud()"><span class="team-name right">Cabo Verde</span></div></div>
+                <div class="match-row"><span class="match-meta">Selasa, 16 Jun - 05:00<span>Hard Rock, Miami</span></span><div class="score-inputs"><span class="team-name left">Arab Saudi</span><input type="number" class="inp-score" id="s_H_1_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_H_1_2" oninput="triggerSimpanCloud()"><span class="team-name right">Uruguay</span></div></div>
+                <div class="match-row"><span class="match-meta">Minggu, 21 Jun - 23:00<span>Mercedes-Benz, Atlanta</span></span><div class="score-inputs"><span class="team-name left">Spanyol</span><input type="number" class="inp-score" id="s_H_2_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_H_2_2" oninput="triggerSimpanCloud()"><span class="team-name right">Arab Saudi</span></div></div>
+                <div class="match-row"><span class="match-meta">Senin, 22 Jun - 05:00<span>Hard Rock, Miami</span></span><div class="score-inputs"><span class="team-name left">Uruguay</span><input type="number" class="inp-score" id="s_H_3_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_H_3_2" oninput="triggerSimpanCloud()"><span class="team-name right">Cabo Verde</span></div></div>
+                <div class="match-row"><span class="match-meta">Sabtu, 27 Jun - 07:00<span>NRG, Houston</span></span><div class="score-inputs"><span class="team-name left">Cabo Verde</span><input type="number" class="inp-score" id="s_H_4_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_H_4_2" oninput="triggerSimpanCloud()"><span class="team-name right">Arab Saudi</span></div></div>
+                <div class="match-row"><span class="match-meta">Sabtu, 27 Jun - 07:00<span>Akron, Guadalajara</span></span><div class="score-inputs"><span class="team-name left">Uruguay</span><input type="number" class="inp-score" id="s_H_5_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_H_5_2" oninput="triggerSimpanCloud()"><span class="team-name right">Spanyol</span></div></div>
+                <table><thead><tr><th>Pos</th><th style="text-align:left">Tim</th><th>Mn</th><th>W</th><th>D</th><th>L</th><th>GM</th><th>GK</th><th>SG</th><th>Pts</th></tr></thead><tbody id="tbody_H"></tbody></table>
+            </div>
+
+            <div class="grup-box" id="grp_I">
+                <h3>GRUP I</h3>
+                <div class="match-row"><span class="match-meta">Rabu, 17 Jun - 02:00<span>MetLife, NY/NJ</span></span><div class="score-inputs"><span class="team-name left">Prancis</span><input type="number" class="inp-score" id="s_I_0_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_I_0_2" oninput="triggerSimpanCloud()"><span class="team-name right">Senegal</span></div></div>
+                <div class="match-row"><span class="match-meta">Rabu, 17 Jun - 05:00<span>Gillette, Boston</span></span><div class="score-inputs"><span class="team-name left">Irak</span><input type="number" class="inp-score" id="s_I_1_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_I_1_2" oninput="triggerSimpanCloud()"><span class="team-name right">Norwegia</span></div></div>
+                <div class="match-row"><span class="match-meta">Selasa, 23 Jun - 04:00<span>Lincoln Fin., Philly</span></span><div class="score-inputs"><span class="team-name left">Prancis</span><input type="number" class="inp-score" id="s_I_2_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_I_2_2" oninput="triggerSimpanCloud()"><span class="team-name right">Irak</span></div></div>
+                <div class="match-row"><span class="match-meta">Selasa, 23 Jun - 07:00<span>MetLife, NY/NJ</span></span><div class="score-inputs"><span class="team-name left">Norwegia</span><input type="number" class="inp-score" id="s_I_3_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_I_3_2" oninput="triggerSimpanCloud()"><span class="team-name right">Senegal</span></div></div>
+                <div class="match-row"><span class="match-meta">Sabtu, 27 Jun - 02:00<span>Gillette, Boston</span></span><div class="score-inputs"><span class="team-name left">Norwegia</span><input type="number" class="inp-score" id="s_I_4_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_I_4_2" oninput="triggerSimpanCloud()"><span class="team-name right">Prancis</span></div></div>
+                <div class="match-row"><span class="match-meta">Sabtu, 27 Jun - 02:00<span>BMO Field, Toronto</span></span><div class="score-inputs"><span class="team-name left">Senegal</span><input type="number" class="inp-score" id="s_I_5_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_I_5_2" oninput="triggerSimpanCloud()"><span class="team-name right">Irak</span></div></div>
+                <table><thead><tr><th>Pos</th><th style="text-align:left">Tim</th><th>Mn</th><th>W</th><th>D</th><th>L</th><th>GM</th><th>GK</th><th>SG</th><th>Pts</th></tr></thead><tbody id="tbody_I"></tbody></table>
+            </div>
+
+            <div class="grup-box" id="grp_J">
+                <h3>GRUP J</h3>
+                <div class="match-row"><span class="match-meta">Rabu, 17 Jun - 08:00<span>Arrowhead, Kansas</span></span><div class="score-inputs"><span class="team-name left">Argentina</span><input type="number" class="inp-score" id="s_J_0_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_J_0_2" oninput="triggerSimpanCloud()"><span class="team-name right">Aljazair</span></div></div>
+                <div class="match-row"><span class="match-meta">Rabu, 17 Jun - 11:00<span>Levi's, SF Bay Area</span></span><div class="score-inputs"><span class="team-name left">Austria</span><input type="number" class="inp-score" id="s_J_1_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_J_1_2" oninput="triggerSimpanCloud()"><span class="team-name right">Yordania</span></div></div>
+                <div class="match-row"><span class="match-meta">Selasa, 23 Jun - 00:00<span>AT&T, Dallas</span></span><div class="score-inputs"><span class="team-name left">Argentina</span><input type="number" class="inp-score" id="s_J_2_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_J_2_2" oninput="triggerSimpanCloud()"><span class="team-name right">Austria</span></div></div>
+                <div class="match-row"><span class="match-meta">Selasa, 23 Jun - 10:00<span>Levi's, SF Bay Area</span></span><div class="score-inputs"><span class="team-name left">Yordania</span><input type="number" class="inp-score" id="s_J_2_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_J_3_2" oninput="triggerSimpanCloud()"><span class="team-name right">Aljazair</span></div></div>
+                <div class="match-row"><span class="match-meta">Minggu, 28 Jun - 09:00<span>Arrowhead, Kansas</span></span><div class="score-inputs"><span class="team-name left">Aljazair</span><input type="number" class="inp-score" id="s_J_4_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_J_4_2" oninput="triggerSimpanCloud()"><span class="team-name right">Austria</span></div></div>
+                <div class="match-row"><span class="match-meta">Minggu, 28 Jun - 09:00<span>AT&T, Dallas</span></span><div class="score-inputs"><span class="team-name left">Yordania</span><input type="number" class="inp-score" id="s_J_5_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_J_5_2" oninput="triggerSimpanCloud()"><span class="team-name right">Argentina</span></div></div>
+                <table><thead><tr><th>Pos</th><th style="text-align:left">Tim</th><th>Mn</th><th>W</th><th>D</th><th>L</th><th>GM</th><th>GK</th><th>SG</th><th>Pts</th></tr></thead><tbody id="tbody_J"></tbody></table>
+            </div>
+
+            <div class="grup-box" id="grp_K">
+                <h3>GRUP K</h3>
+                <div class="match-row"><span class="match-meta">Kamis, 18 Jun - 00:00<span>NRG, Houston</span></span><div class="score-inputs"><span class="team-name left">Portugal</span><input type="number" class="inp-score" id="s_K_0_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_K_0_2" oninput="triggerSimpanCloud()"><span class="team-name right">RD Kongo</span></div></div>
+                <div class="match-row"><span class="match-meta">Kamis, 18 Jun - 09:00<span>Azteca, Mexico City</span></span><div class="score-inputs"><span class="team-name left">Uzbekistan</span><input type="number" class="inp-score" id="s_K_1_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_K_1_2" oninput="triggerSimpanCloud()"><span class="team-name right">Kolombia</span></div></div>
+                <div class="match-row"><span class="match-meta">Rabu, 24 Jun - 00:00<span>NRG, Houston</span></span><div class="score-inputs"><span class="team-name left">Portugal</span><input type="number" class="inp-score" id="s_K_2_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_K_2_2" oninput="triggerSimpanCloud()"><span class="team-name right">Uzbekistan</span></div></div>
+                <div class="match-row"><span class="match-meta">Rabu, 24 Jun - 09:00<span>Akron, Guadalajara</span></span><div class="score-inputs"><span class="team-name left">Kolombia</span><input type="number" class="inp-score" id="s_K_3_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_K_3_2" oninput="triggerSimpanCloud()"><span class="team-name right">RD Kongo</span></div></div>
+                <div class="match-row"><span class="match-meta">Minggu, 28 Jun - 06:30<span>Hard Rock, Miami</span></span><div class="score-inputs"><span class="team-name left">Kolombia</span><input type="number" class="inp-score" id="s_K_4_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_K_4_2" oninput="triggerSimpanCloud()"><span class="team-name right">Portugal</span></div></div>
+                <div class="match-row"><span class="match-meta">Minggu, 28 Jun - 06:30<span>Mercedes-Benz, Atlanta</span></span><div class="score-inputs"><span class="team-name left">RD Kongo</span><input type="number" class="inp-score" id="s_K_5_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_K_5_2" oninput="triggerSimpanCloud()"><span class="team-name right">Uzbekistan</span></div></div>
+                <table><thead><tr><th>Pos</th><th style="text-align:left">Tim</th><th>Mn</th><th>W</th><th>D</th><th>L</th><th>GM</th><th>GK</th><th>SG</th><th>Pts</th></tr></thead><tbody id="tbody_K"></tbody></table>
+            </div>
+
+            <div class="grup-box" id="grp_L">
+                <h3>GRUP L</h3>
+                <div class="match-row"><span class="match-meta">Kamis, 18 Jun - 03:00<span>AT&T, Dallas</span></span><div class="score-inputs"><span class="team-name left">Inggris</span><input type="number" class="inp-score" id="s_L_0_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_L_0_2" oninput="triggerSimpanCloud()"><span class="team-name right">Kroasia</span></div></div>
+                <div class="match-row"><span class="match-meta">Kamis, 18 Jun - 06:00<span>BMO Field, Toronto</span></span><div class="score-inputs"><span class="team-name left">Ghana</span><input type="number" class="inp-score" id="s_L_1_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_L_1_2" oninput="triggerSimpanCloud()"><span class="team-name right">Panama</span></div></div>
+                <div class="match-row"><span class="match-meta">Rabu, 24 Jun - 03:00<span>Gillette, Boston</span></span><div class="score-inputs"><span class="team-name left">Inggris</span><input type="number" class="inp-score" id="s_L_2_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_L_2_2" oninput="triggerSimpanCloud()"><span class="team-name right">Ghana</span></div></div>
+                <div class="match-row"><span class="match-meta">Rabu, 24 Jun - 06:00<span>BMO Field, Toronto</span></span><div class="score-inputs"><span class="team-name left">Panama</span><input type="number" class="inp-score" id="s_L_3_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_L_3_2" oninput="triggerSimpanCloud()"><span class="team-name right">Kroasia</span></div></div>
+                <div class="match-row"><span class="match-meta">Minggu, 28 Jun - 04:00<span>MetLife, NY/NJ</span></span><div class="score-inputs"><span class="team-name left">Panama</span><input type="number" class="inp-score" id="s_L_4_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_L_4_2" oninput="triggerSimpanCloud()"><span class="team-name right">Inggris</span></div></div>
+                <div class="match-row"><span class="match-meta">Minggu, 28 Jun - 04:00<span>Lincoln Fin., Philly</span></span><div class="score-inputs"><span class="team-name left">Kroasia</span><input type="number" class="inp-score" id="s_L_5_1" oninput="triggerSimpanCloud()"><span>-</span><input type="number" class="inp-score" id="s_L_5_2" oninput="triggerSimpanCloud()"><span class="team-name right">Ghana</span></div></div>
+                <table><thead><tr><th>Pos</th><th style="text-align:left">Tim</th><th>Mn</th><th>W</th><th>D</th><th>L</th><th>GM</th><th>GK</th><th>SG</th><th>Pts</th></tr></thead><tbody id="tbody_L"></tbody></table>
+            </div>
+        </div>
+
+        <div class="p3-section" id="pos-p3">
+            <h3>Evaluasi Peringkat 3 Terbaik Global</h3>
+            <table>
+                <thead>
+                    <tr><th>Grup</th><th>Tim</th><th>Mn</th><th>SG</th><th>Poin</th><th>Status Kelolosan</th></tr>
+                </thead>
+                <tbody id="tb_p3"></tbody>
+            </table>
+        </div>
+
+        <div class="ko-section" id="fase-gugur">
+            <h2>Bagan Fase Gugur Terkoneksi Otomatis</h2>
+            <div class="ko-stage-block">
+                <h4>Babak 32 Besar</h4>
+                <div class="ko-grid-matches" id="ko_32"></div>
+            </div>
+            <div class="ko-stage-block">
+                <h4>Babak 16 Besar</h4>
+                <div class="ko-grid-matches" id="ko_16"></div>
+            </div>
+            <div class="ko-stage-block">
+                <h4>Perempat Final (8 Besar)</h4>
+                <div class="ko-grid-matches" id="ko_8"></div>
+            </div>
+            <div class="ko-stage-block">
+                <h4>Semifinal</h4>
+                <div class="ko-grid-matches" id="ko_4"></div>
+            </div>
+            <div class="ko-stage-block" style="background:#0a0d14; border: 2px dashed #ffd700;">
+                <h4 style="color:#ffd700; text-align:center;">🏆 PODIUM AKHIR</h4>
+                <div class="final-arena" id="ko_final_stage"></div>
+                
+                <div class="champion-podium-box" id="podium_juara_dunia">
+                    <div class="champion-badge">✨ WORLD CUP 2026 CHAMPION ✨</div>
+                    <div class="star-ornaments">⭐⭐⭐🏆⭐⭐⭐</div>
+                    <div class="champion-team-name" id="nama_tim_juara">---</div>
+                    <div style="font-size: 12px; color: #8fa0bc; margin-top: 10px;">Congratulations! History has been written.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    // ==========================================
+    // SEGERA GANTI INI DENGAN CONFIG LU SENDIRI!
+    // ==========================================
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+	const firebaseConfig = {
+  apiKey: "AIzaSyDe8G6ZjOX4NS-TcmWdYT85goN62Dgpurc",
+  authDomain: "piala-dunia-2026.firebaseapp.com",
+  projectId: "piala-dunia-2026",
+  storageBucket: "piala-dunia-2026.firebasestorage.app",
+  messagingSenderId: "313936898133",
+  appId: "1:313936898133:web:2f3c86fecaf719535f4cdc",
+  measurementId: "G-ZNR7HWGNC0",
+  databaseURL: "https://piala-dunia-2026-default-rtdb.asia-southeast1.firebasedatabase.app",
+};
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const scoresRef = ref(db, 'sim_worldcup_2026/scores');
+
+    const groupsData = {
+        A: { teams: ["Meksiko", "Afrika Selatan", "Korea Selatan", "Rep. Ceko"], mIdx: [[0,1], [2,3], [3,1], [0,2], [3,0], [1,2]] },
+        B: { teams: ["Kanada", "Bosnia & Herz.", "Qatar", "Swiss"], mIdx: [[0,1], [2,3], [3,1], [0,2], [3,0], [1,2]] },
+        C: { teams: ["Brasil", "Maroko", "Haiti", "Skotlandia"], mIdx: [[0,1], [2,3], [3,1], [0,2], [3,0], [1,2]] },
+        D: { teams: ["AS", "Paraguay", "Australia", "Turki"], mIdx: [[0,1], [2,3], [0,2], [3,1], [3,0], [1,2]] },
+        E: { teams: ["Jerman", "Curaçao", "Pantai Gading", "Ekuador"], mIdx: [[0,1], [2,3], [0,2], [3,1], [1,2], [3,0]] },
+        F: { teams: ["Belanda", "Jepang", "Swedia", "Tunisia"], mIdx: [[0,1], [2,3], [0,2], [3,1], [1,2], [3,0]] },
+        G: { teams: ["Belgia", "Mesir", "Iran", "Selandia Baru"], mIdx: [[0,1], [2,3], [0,2], [3,1], [1,2], [3,0]] },
+        H: { teams: ["Spanyol", "Cabo Verde", "Arab Saudi", "Uruguay"], mIdx: [[0,1], [2,3], [0,2], [3,1], [1,2], [3,0]] },
+        I: { teams: ["Prancis", "Senegal", "Irak", "Norwegia"], mIdx: [[0,1], [2,3], [0,2], [3,1], [3,0], [1,2]] },
+        J: { teams: ["Argentina", "Aljazair", "Austria", "Yordania"], mIdx: [[0,1], [2,3], [0,2], [3,1], [1,2], [3,0]] },
+        K: { teams: ["Portugal", "RD Kongo", "Uzbekistan", "Kolombia"], mIdx: [[0,1], [2,3], [0,2], [3,1], [3,0], [1,2]] },
+        L: { teams: ["Inggris", "Kroasia", "Ghana", "Panama"], mIdx: [[0,1], [2,3], [0,2], [3,1], [3,0], [1,2]] }
+    };
+
+    let koMatches = {
+        32: [
+            { id: "Laga_73", time: "Senin, 29 Jun - 02:00", std: "NRG Houston", type: "R", gA: "A", gB: "B", t1: "Runner-up A", t2: "Runner-up B" },
+            { id: "Laga_74", time: "Selasa, 30 Jun - 00:00", std: "NRG, Houston", type: "J_R", gA: "C", gB: "F", t1: "Juara C", t2: "Runner-up F" },
+            { id: "Laga_75", time: "Selasa, 30 Jun - 03:30", std: "Gillette, Boston", type: "P3", gA: "E", allowed: ["A","B","C","D","F"], t1: "Juara E", t2: "P3 (A/B/C/D/F)" },
+            { id: "Laga_76", time: "Selasa, 30 Jun - 08:00", std: "BBVA, Monterrey", type: "J_R", gA: "F", gB: "C", t1: "Juara F", t2: "Runner-up C" },
+            { id: "Laga_77", time: "Rabu, 1 Jul - 00:00", std: "AT&T, Dallas", type: "R", gA: "E", gB: "I", t1: "Runner-up E", t2: "Runner-up I" },
+            { id: "Laga_78", time: "Rabu, 1 Jul - 04:00", std: "MetLife, NY/NJ", type: "P3", gA: "I", allowed: ["C","D","F","G","H"], t1: "Juara I", t2: "P3 (C/D/F/G/H)" },
+            { id: "Laga_79", time: "Rabu, 1 Jul - 08:00", std: "Azteca, Mexico City", type: "P3", gA: "A", allowed: ["C","E","F","H","I"], t1: "Juara A", t2: "P3 (C/E/F/H/I)" },
+            { id: "Laga_80", time: "Rabu, 1 Jul - 23:00", std: "Mercedes-Benz, Atlanta", type: "P3", gA: "L", allowed: ["E","H","I","J","K"], t1: "Juara L", t2: "P3 (E/H/I/J/K)" },
+            { id: "Laga_81", time: "Kamis, 2 Jul - 03:00", std: "Lumen Field, Seattle", type: "P3", gA: "G", allowed: ["A","E","H","I","J"], t1: "Juara G", t2: "P3 (A/E/H/I/J)" },
+            { id: "Laga_82", time: "Kamis, 2 Jul - 07:00", std: "Levi's, SF Bay Area", type: "P3", gA: "D", allowed: ["B","E","F","I","J"], t1: "Juara D", t2: "P3 (B/E/F/I/J)" },
+            { id: "Laga_83", time: "Jumat, 3 Jul - 02:00", std: "SoFi, Los Angeles", type: "J_R", gA: "H", gB: "J", t1: "Juara H", t2: "Runner-up J" },
+            { id: "Laga_84", time: "Jumat, 3 Jul - 06:00", std: "BMO Field, Toronto", type: "R", gA: "K", gB: "L", t1: "Runner-up K", t2: "Runner-up L" },
+            { id: "Laga_85", time: "Jumat, 3 Jul - 10:00", std: "BC Place, Vancouver", type: "P3", gA: "B", allowed: ["E","F","G","I","J"], t1: "Juara B", t2: "P3 (E/F/G/I/J)" },
+            { id: "Laga_86", time: "Sabtu, 4 Jul - 01:00", std: "AT&T, Dallas", type: "R", gA: "D", gB: "G", t1: "Runner-up D", t2: "Runner-up G" },
+            { id: "Laga_87", time: "Sabtu, 4 Jul - 05:00", std: "Hard Rock, Miami", type: "J_R", gA: "J", gB: "H", t1: "Juara J", t2: "Runner-up H" },
+            { id: "Laga_88", time: "Sabtu, 4 Jul - 08:30", std: "Arrowhead, Kansas", type: "P3", gA: "K", allowed: ["D","E","I","J","L"], t1: "Juara K", t2: "P3 (D/E/I/J/L)" }
+        ],
+        16: [
+            { id: "Laga_89", time: "Minggu, 5 Jul - 00:00", std: "NRG, Houston", p1: "Laga_73", p2: "Laga_75", t1: "Pemenang Laga 73", t2: "Pemenang Laga 75" },
+            { id: "Laga_90", time: "Minggu, 5 Jul - 04:00", std: "Lincoln Fin., Philly", p1: "Laga_74", p2: "Laga_77", t1: "Pemenang Laga 74", t2: "Pemenang Laga 77" },
+            { id: "Laga_91", time: "Senin, 6 Jul - 03:00", std: "MetLife, NY/NJ", p1: "Laga_76", p2: "Laga_78", t1: "Pemenang Laga 76", t2: "Pemenang Laga 78" },
+            { id: "Laga_92", time: "Senin, 6 Jul - 07:00", std: "Azteca, Mexico City", p1: "Laga_79", p2: "Laga_80", t1: "Pemenang Laga 79", t2: "Pemenang Laga 80" },
+            { id: "Laga_93", time: "Selasa, 7 Jul - 02:00", std: "AT&T, Dallas", p1: "Laga_83", p2: "Laga_84", t1: "Pemenang Laga 83", t2: "Pemenang Laga 84" },
+            { id: "Laga_94", time: "Selasa, 7 Jul - 07:00", std: "Lumen Field, Seattle", p1: "Laga_81", p2: "Laga_82", t1: "Pemenang Laga 81", t2: "Pemenang Laga 82" },
+            { id: "Laga_95", time: "Selasa, 7 Jul - 23:00", std: "Mercedes-Benz, Atlanta", p1: "Laga_86", p2: "Laga_88", t1: "Pemenang Laga 86", t2: "Pemenang Laga 88" },
+            { id: "Laga_96", time: "Rabu, 8 Jul - 03:00", std: "BC Place, Vancouver", p1: "Laga_85", p2: "Laga_87", t1: "Pemenang Laga 85", t2: "Pemenang Laga 87" }
+        ],
+        8: [
+            { id: "Laga_97", time: "Jumat, 10 Jul - 03:00", std: "Gillette, Boston", p1: "Laga_89", p2: "Laga_90", t1: "Pemenang Laga 89", t2: "Pemenang Laga 90" },
+            { id: "Laga_98", time: "Minggu, 12 Jul - 04:00", std: "Hard Rock, Miami", p1: "Laga_91", p2: "Laga_92", t1: "Pemenang Laga 91", t2: "Pemenang Laga 92" },
+            { id: "Laga_99", time: "Sabtu, 11 Jul - 02:00", std: "SoFi, Los Angeles", p1: "Laga_93", p2: "Laga_94", t1: "Pemenang Laga 93", t2: "Pemenang Laga 94" },
+            { id: "Laga_100", time: "Minggu, 12 Jul - 08:00", std: "Arrowhead, Kansas", p1: "Laga_95", p2: "Laga_96", t1: "Pemenang Laga 95", t2: "Pemenang Laga 96" }
+        ],
+        4: [
+            { id: "Laga_101", time: "Rabu, 15 Jul - 02:00", std: "AT&T, Dallas", p1: "Laga_97", p2: "Laga_98", t1: "Pemenang Laga 97", t2: "Pemenang Laga 98" },
+            { id: "Laga_102", time: "Kamis, 16 Jul - 02:00", std: "Mercedes-Benz, Atlanta", p1: "Laga_99", p2: "Laga_100", t1: "Pemenang Laga 99", t2: "Pemenang Laga 100" }
+        ]
+    };
+
+    function renderBaganAwal() {
+        const buildStandard = (stageKey, targetId) => {
+            let h = "";
+            koMatches[stageKey].forEach(m => {
+                h += `
+                <div class="ko-match-card">
+                    <div style="font-size:11px; color:#ffca28; font-weight:bold;">${m.id} - ${m.time}</div>
+                    <div class="ko-vs-zone">
+                        <div class="ko-team-line"><span id="name_${m.id}_1">${m.t1}</span><input type="number" class="inp-score" id="ko_s1_${m.id}" oninput="triggerSimpanCloud()"></div>
+                        <div class="ko-team-line"><span id="name_${m.id}_2">${m.t2}</span><input type="number" class="inp-score" id="ko_s2_${m.id}" oninput="triggerSimpanCloud()"></div>
+                    </div>
+                    <div class="stadium-info">📍 ${m.std}</div>
+                </div>`;
+            });
+            document.getElementById(targetId).innerHTML = h;
+        };
+
+        buildStandard(32, "ko_32"); 
+        buildStandard(16, "ko_16"); 
+        buildStandard(8, "ko_8");
+        buildStandard(4, "ko_4");
+
+        document.getElementById("ko_final_stage").innerHTML = `
+            <div class="final-card-epic card-3rd">
+                <div class="final-title-badge">🥉 Perebutan Tempat Ketiga</div>
+                <div style="font-size:11px; color:#aaa; margin-bottom:10px; text-align:center;">Minggu, 19 Jul - 04:00 WIB</div>
+                <div class="final-vs-zone">
+                    <div class="final-team-row"><span id="name_Laga103_1">Kalah Laga 101</span><input type="number" class="final-score-input" id="ko_s1_Laga103" oninput="triggerSimpanCloud()"></div>
+                    <div class="final-team-row"><span id="name_Laga103_2">Kalah Laga 102</span><input type="number" class="final-score-input" id="ko_s2_Laga103" oninput="triggerSimpanCloud()"></div>
+                </div>
+                <div class="stadium-info" style="margin-top:15px; text-align:center;">📍 Stadion Hard Rock, Miami</div>
+            </div>
+            <div class="final-card-epic">
+                <div class="final-title-badge">🏆 GRAND FINAL</div>
+                <div style="font-size:11px; color:#ffd700; margin-bottom:10px; text-align:center;">Senin, 20 Jul - 02:00 WIB</div>
+                <div class="final-vs-zone">
+                    <div class="final-team-row"><span id="name_Laga104_1">Pemenang Laga 101</span><input type="number" class="final-score-input" id="ko_s1_Laga104" oninput="triggerSimpanCloud()"></div>
+                    <div class="final-team-row"><span id="name_Laga104_2">Pemenang Laga 102</span><input type="number" class="final-score-input" id="ko_s2_Laga104" oninput="triggerSimpanCloud()"></div>
+                </div>
+                <div class="stadium-info" style="margin-top:15px; text-align:center;">📍 Stadion MetLife, New York/New Jersey</div>
+            </div>`;
+    }
+
+    // Fungsi Utama Kalkulasi Logika Turnamen
+    window.hitungSistemSemua = function() {
+    const listGrup = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
+    
+    const masterTeams = {
+        A: ["Meksiko", "Afrika Selatan", "Korea Selatan", "Rep. Ceko"],
+        B: ["Kanada", "Bosnia & Herz.", "Qatar", "Swiss"],
+        C: ["Brasil", "Maroko", "Haiti", "Skotlandia"],
+        D: ["AS", "Paraguay", "Australia", "Turki"],
+        E: ["Jerman", "Curaçao", "Pantai Gading", "Ekuador"],
+        F: ["Belanda", "Jepang", "Swedia", "Tunisia"],
+        G: ["Belgia", "Mesir", "Iran", "Selandia Baru"],
+        H: ["Spanyol", "Cabo Verde", "Arab Saudi", "Uruguay"],
+        I: ["Prancis", "Senegal", "Irak", "Norwegia"],
+        J: ["Argentina", "Austria", "Yordania", "Aljazair"],
+        K: ["Portugal", "RD Kongo", "Uzbekistan", "Kolombia"],
+        L: ["Italia", "Kamerun", "Oman", "Chile"]
+    };
+
+    let groupsData = {};
+
+    listGrup.forEach(grup => {
+        let teams = masterTeams[grup];
+        let tData = {};
+        teams.forEach(t => {
+            tData[t] = { name: t, main: 0, w: 0, d: 0, l: 0, gm: 0, gk: 0, sg: 0, poin: 0 };
+        });
+
+        for (let i = 0; i < 6; i++) {
+            let inp1 = document.getElementById(`s_${grup}_${i}_1`);
+            let inp2 = document.getElementById(`s_${grup}_${i}_2`);
+            
+            if (inp1 && inp2 && inp1.value !== "" && inp2.value !== "") {
+                let g1 = parseInt(inp1.value);
+                let g2 = parseInt(inp2.value);
+
+                let row = inp1.closest('.match-row');
+                let t1Name = row.querySelector('.team-name.left').innerText;
+                let t2Name = row.querySelector('.team-name.right').innerText;
+
+                if (tData[t1Name] && tData[t2Name]) {
+                    tData[t1Name].main++;
+                    tData[t2Name].main++;
+                    tData[t1Name].gm += g1;
+                    tData[t1Name].gk += g2;
+                    tData[t2Name].gm += g2;
+                    tData[t2Name].gk += g1;
+
+                    if (g1 > g2) {
+                        tData[t1Name].w++;
+                        tData[t1Name].poin += 3;
+                        tData[t2Name].l++;
+                    } else if (g1 < g2) {
+                        tData[t2Name].w++;
+                        tData[t2Name].poin += 3;
+                        tData[t1Name].l++;
+                    } else {
+                        tData[t1Name].d++;
+                        tData[t2Name].d++;
+                        tData[t1Name].poin += 1;
+                        tData[t2Name].poin += 1;
+                    }
+                }
+            }
+        }
+
+        let arr = [];
+        Object.keys(tData).forEach(k => {
+            tData[k].sg = tData[k].gm - tData[k].gk;
+            arr.push(tData[k]);
+        });
+
+        arr.sort((a, b) => b.poin - a.poin || b.sg - a.sg || b.gm - a.gm);
+
+        groupsData[grup] = {
+            juara: arr[0].name,
+            runnerUp: arr[1].name,
+            p3: arr[2]
+        };
+
+        let tbody = document.getElementById(`tbody_${grup}`);
+        if (tbody) {
+            tbody.innerHTML = "";
+            arr.forEach((t, index) => {
+                let rowBg = index < 2 ? "rgba(0,223,137,0.04)" : (index === 2 ? "rgba(170,102,204,0.04)" : "");
+                tbody.innerHTML += `
+                    <tr style="background:${rowBg}">
+                        <td><b>${index + 1}</b></td>
+                        <td style="text-align:left">${t.name}</td>
+                        <td>${t.main}</td>
+                        <td>${t.w}</td>
+                        <td>${t.d}</td>
+                        <td>${t.l}</td>
+                        <td>${t.gm}</td>
+                        <td>${t.gk}</td>
+                        <td>${t.sg > 0 ? '+' + t.sg : t.sg}</td>
+                        <td><b>${t.poin}</b></td>
+                    </tr>`;
+            });
+        }
+    });
+
+    // ==========================================
+    // LOGIKA PERINGKAT 3 TERBAIK & PENGISIAN BAGAN OTOMATIS
+    // ==========================================
+    let p3List = [];
+    listGrup.forEach(grup => {
+        if (groupsData[grup] && groupsData[grup].p3) {
+            p3List.push({
+                grup: grup,
+                name: groupsData[grup].p3.name,
+                main: groupsData[grup].p3.main,
+                w: groupsData[grup].p3.w,
+                d: groupsData[grup].p3.d,
+                l: groupsData[grup].p3.l,
+                gm: groupsData[grup].p3.gm,
+                gk: groupsData[grup].p3.gk,
+                sg: groupsData[grup].p3.sg,
+                poin: groupsData[grup].p3.poin
+            });
+        }
+    });
+
+    p3List.sort((a, b) => b.poin - a.poin || b.sg - a.sg || b.gm - a.gm);
+
+    let top8P3Objects = p3List.slice(0, 8);
+    let top8P3Names = new Set(top8P3Objects.map(x => x.name));
+    let lolosP3GrupMap = {};
+    top8P3Objects.forEach(obj => {
+        lolosP3GrupMap[obj.grup] = obj.name;
+    });
+
+    let tbodyP3 = document.getElementById("tbody_p3");
+    if (tbodyP3) {
+        tbodyP3.innerHTML = "";
+        p3List.forEach((t, index) => {
+            let lolos = index < 8;
+            let rowBg = lolos ? "rgba(0,223,137,0.04)" : "rgba(255,76,76,0.04)";
+            tbodyP3.innerHTML += `
+                <tr style="background:${rowBg}">
+                    <td><b>${index + 1}</b></td>
+                    <td>Grup ${t.grup}</td>
+                    <td style="text-align:left">${t.name}</td>
+                    <td>${t.main}</td>
+                    <td>${t.w}</td>
+                    <td>${t.d}</td>
+                    <td>${t.l}</td>
+                    <td>${t.gm}</td>
+                    <td>${t.gk}</td>
+                    <td>${t.sg > 0 ? '+' + t.sg : t.sg}</td>
+                    <td><b>${t.poin}</b></td>
+                    <td style="color:${lolos?'#00df89':'#ff4c4c'}; font-weight:bold">${lolos?'🟢 LOLOS':'🔴 GUGUR'}</td>
+                </tr>`;
+        });
+    }
+
+        let digunakan = new Set();
+
+        koMatches[32].forEach(m => {
+            if(m.type === "R") {
+                m.t1 = groupsData[m.gA].runnerUp; 
+                m.t2 = groupsData[m.gB].runnerUp;
+            } else if(m.type === "J_R") {
+                m.t1 = groupsData[m.gA].juara; 
+                m.t2 = groupsData[m.gB].runnerUp;
+            } else if(m.type === "P3") {
+                m.t1 = groupsData[m.gA].juara;
+                let kandidatNama = null;
+                for(let gLolos of m.allowed) {
+                    if(lolosP3GrupMap[gLolos] && !digunakan.has(lolosP3GrupMap[gLolos])) {
+                        kandidatNama = lolosP3GrupMap[gLolos];
+                        digunakan.add(kandidatNama);
+                        break;
+                    }
+                }
+                if(!kandidatNama) {
+                    for(let p3Obj of top8P3Objects) {
+                        if(!digunakan.has(p3Obj.name)) {
+                            kandidatNama = p3Obj.name;
+                            digunakan.add(kandidatNama);
+                            break;
+                        }
+                    }
+                }
+                m.t2 = kandidatNama ? kandidatNama : `P3 (${m.allowed.join('/')})`;
+            }
+            let el1 = document.getElementById(`name_${m.id}_1`);
+            let el2 = document.getElementById(`name_${m.id}_2`);
+            if(el1) el1.innerText = m.t1;
+            if(el2) el2.innerText = m.t2;
+        });
+
+        kalkulasiKnockout();
+    }
+
+    function kalkulasiKnockout() {
+        const getMatchResult = (id) => {
+            let s1 = document.getElementById(`ko_s1_${id}`)?.value;
+            let s2 = document.getElementById(`ko_s2_${id}`)?.value;
+            let n1 = document.getElementById(`name_${id}_1`)?.innerText;
+            let n2 = document.getElementById(`name_${id}_2`)?.innerText;
+            if(s1 !== undefined && s2 !== undefined && s1 !== "" && s2 !== "") {
+                return parseInt(s1) >= parseInt(s2) ? { winner: n1, loser: n2 } : { winner: n2, loser: n1 };
+            }
+            return { winner: null, loser: null };
+        };
+
+        // Babak 16 Besar
+        koMatches[16].forEach(m => {
+            let res1 = getMatchResult(m.p1), res2 = getMatchResult(m.p2);
+            if(res1.winner) m.t1 = res1.winner; if(res2.winner) m.t2 = res2.winner;
+            let e1 = document.getElementById(`name_${m.id}_1`);
+            let e2 = document.getElementById(`name_${m.id}_2`);
+            if(e1) e1.innerText = m.t1; if(e2) e2.innerText = m.t2;
+        });
+
+        // Perempat Final
+        koMatches[8].forEach(m => {
+            let res1 = getMatchResult(m.p1), res2 = getMatchResult(m.p2);
+            if(res1.winner) m.t1 = res1.winner; if(res2.winner) m.t2 = res2.winner;
+            let e1 = document.getElementById(`name_${m.id}_1`);
+            let e2 = document.getElementById(`name_${m.id}_2`);
+            if(e1) e1.innerText = m.t1; if(e2) e2.innerText = m.t2;
+        });
+
+        // Semifinal
+        koMatches[4].forEach(m => {
+            let res1 = getMatchResult(m.p1), res2 = getMatchResult(m.p2);
+            if(res1.winner) m.t1 = res1.winner; if(res2.winner) m.t2 = res2.winner;
+            let e1 = document.getElementById(`name_${m.id}_1`);
+            let e2 = document.getElementById(`name_${m.id}_2`);
+            if(e1) e1.innerText = m.t1; if(e2) e2.innerText = m.t2;
+        });
+
+        // Final Alokasi
+        let sf1 = getMatchResult("Laga_101");
+        let sf2 = getMatchResult("Laga_102");
+
+        let f1 = document.getElementById("name_Laga104_1");
+        let f2 = document.getElementById("name_Laga104_2");
+        let t1 = document.getElementById("name_Laga103_1");
+        let t2 = document.getElementById("name_Laga103_2");
+
+        if (sf1.winner && f1) f1.innerText = sf1.winner;
+        if (sf2.winner && f2) f2.innerText = sf2.winner;
+        if (sf1.loser && t1) t1.innerText = sf1.loser;
+        if (sf2.loser && t2) t2.innerText = sf2.loser;
+        
+        cekJuaraPodium();
+    }
+
+    function cekJuaraPodium() {
+        const inputSkor1 = document.getElementById("ko_s1_Laga104");
+        const inputSkor2 = document.getElementById("ko_s2_Laga104");
+        const boxPodium = document.getElementById("podium_juara_dunia");
+        const teksJuara = document.getElementById("nama_tim_juara");
+
+        if (inputSkor1 && inputSkor2 && boxPodium) {
+            let s1 = inputSkor1.value;
+            let s2 = inputSkor2.value;
+            let n1 = document.getElementById("name_Laga104_1")?.innerText;
+            let n2 = document.getElementById("name_Laga104_2")?.innerText;
+
+            if (s1 !== "" && s2 !== "") {
+                if (n1 === "Pemenang Laga 101") n1 = "TIM FINALIS 1";
+                if (n2 === "Pemenang Laga 102") n2 = "TIM FINALIS 2";
+
+                let pemenang = parseInt(s1) >= parseInt(s2) ? n1 : n2;
+                teksJuara.innerText = pemenang;
+                boxPodium.style.display = "block";
+            } else {
+                boxPodium.style.display = "none";
+            }
+        }
+    }
+
+    // ==========================================
+    // CLOUD DATABASE WRITE (Kirim ke Firebase)
+    // ==========================================
+    let timoutPushCloud;
+    window.triggerSimpanCloud = function() {
+        // Debounce 500ms biar gajebol spam hit database sewaktu user mengetik angka skor
+        clearTimeout(timoutPushCloud);
+        timoutPushCloud = setTimeout(() => {
+            let semuaSkor = {};
+            document.querySelectorAll("input[type='number']").forEach(input => {
+                if (input.value !== "") {
+                    semuaSkor[input.id] = input.value;
+                }
+            });
+            
+            // Simpan objek ke Firebase Cloud
+            set(scoresRef, semuaSkor).then(() => {
+                let badge = document.getElementById("cloudSyncStatus");
+                if(badge) {
+                    badge.style.display = "block";
+                    setTimeout(() => { badge.style.display = "none"; }, 1500);
+                }
+            });
+        }, 500);
+    };
+
+    // ==========================================
+    // CLOUD DATABASE REAL-TIME LISTEN (Ambil data)
+    // ==========================================
+    renderBaganAwal();
+
+    onValue(scoresRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            Object.keys(data).forEach(id => {
+                let el = document.getElementById(id);
+                if (el) {
+                    el.value = data[id];
+                }
+            });
+        }
+        
+        // JALANKAN KALKULATOR UTAMA DENGAN PROTEKSI AMAN (TRY-CATCH)
+        // Ini trik biar kalau ada grup/laga yang eror, browser tidak macet total
+        try {
+            if (typeof window.hitungSistemSemua === 'function') {
+                window.hitungSistemSemua();
+            }
+        } catch (error) {
+            console.log("🛡️ Klasemen berhasil dihitung, mengabaikan input ID grup yang kosong/null.");
+        }
+    });
+</script>
+</body>
+</html>
