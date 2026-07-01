@@ -320,13 +320,11 @@
 
     let koMatches = {
         32: [
-            { id: "Laga_73", time: "Senin, 29 Jun - 02:00", std: "NRG, Houston", type: "R", gA: "A", gB: "B", t1: "Runner-up A", t2: "Runner-up B" },
+            { id: "Laga_73", time: "Senin, 29 Jun - 02:00", std: "SoFi, Los Angeles", type: "R", gA: "A", gB: "B", t1: "Runner-up A", t2: "Runner-up B" },
             { id: "Laga_74", time: "Selasa, 30 Jun - 00:00", std: "NRG, Houston", type: "J_R", gA: "C", gB: "F", t1: "Juara C", t2: "Runner-up F" },
-            // PERBAIKAN: Laga 75 adalah tempat Juara E (Jerman) menunggu lawannya
             { id: "Laga_75", time: "Selasa, 30 Jun - 03:30", std: "Gillette, Boston", type: "P3", gA: "E", allowed: ["A","B","C","D","F"], t1: "Juara E", t2: "P3 (A/B/C/D/F)" },
             { id: "Laga_76", time: "Selasa, 30 Jun - 08:00", std: "BBVA, Monterrey", type: "J_R", gA: "F", gB: "C", t1: "Juara F", t2: "Runner-up C" },
             { id: "Laga_77", time: "Rabu, 1 Jul - 00:00", std: "AT&T, Dallas", type: "R", gA: "E", gB: "I", t1: "Runner-up E", t2: "Runner-up I" },
-            // PERBAIKAN: Laga 78 adalah tempat Juara I (Prancis) menunggu lawannya
             { id: "Laga_78", time: "Rabu, 1 Jul - 04:00", std: "MetLife, NY/NJ", type: "P3", gA: "I", allowed: ["C","D","F","G","H"], t1: "Juara I", t2: "P3 (C/D/F/G/H)" },
             { id: "Laga_79", time: "Rabu, 1 Jul - 08:00", std: "Azteca, Mexico City", type: "P3", gA: "A", allowed: ["C","E","F","H","I"], t1: "Juara A", t2: "P3 (C/E/F/H/I)" },
             { id: "Laga_80", time: "Rabu, 1 Jul - 23:00", std: "Mercedes-Benz, Atlanta", type: "P3", gA: "L", allowed: ["E","H","I","J","K"], t1: "Juara L", t2: "P3 (E/H/I/J/K)" },
@@ -339,14 +337,11 @@
             { id: "Laga_87", time: "Sabtu, 4 Jul - 05:00", std: "Hard Rock, Miami", type: "J_R", gA: "J", gB: "H", t1: "Juara J", t2: "Runner-up H" },
             { id: "Laga_88", time: "Sabtu, 4 Jul - 08:30", std: "Arrowhead, Kansas", type: "P3", gA: "K", allowed: ["D","E","I","J","L"], t1: "Juara K", t2: "P3 (D/E/I/J/L)" }
         ],
-       16: [
-            // Laga 89 mempertemukan Pemenang Laga 73 dengan Pemenang Laga 76
-            { id: "Laga_89", time: "Minggu, 5 Jul - 00:00", std: "NRG, Houston", p1: "Laga_73", p2: "Laga_76", t1: "Pemenang Laga 73", t2: "Pemenang Laga 76" },
-            // Laga 90 mempertemukan Pemenang Jerman (Laga 75) vs Pemenang Prancis (Laga 78)
-            { id: "Laga_90", time: "Minggu, 5 Jul - 04:00", std: "Lincoln Fin., Philly", p1: "Laga_75", p2: "Laga_78", t1: "Pemenang Laga 75", t2: "Pemenang Laga 78" },
-            // Laga 91 mempertemukan Pemenang Laga 74 dengan Pemenang Laga 77
-            { id: "Laga_91", time: "Senin, 6 Jul - 03:00", std: "MetLife, NY/NJ", p1: "Laga_74", p2: "Laga_77", t1: "Pemenang Laga 74", t2: "Pemenang Laga 77" },
-            // Sisa laga 92-96 tetap sama seperti bawaan file index.html Anda...
+        16: [
+            { id: "Laga_89", time: "Minggu, 5 Jul - 00:00", std: "NRG, Houston", p1: "Laga_73", p2: "Laga_75", t1: "Pemenang Laga 73", t2: "Pemenang Laga 75" },
+            // PERBAIKAN UTAMA: Menghubungkan Laga 74 (Paraguay) dengan Laga 78 (Prancis) secara langsung
+            { id: "Laga_90", time: "Minggu, 5 Jul - 04:00", std: "Lincoln Fin., Philly", p1: "Laga_74", p2: "Laga_78", t1: "Pemenang Laga 74", t2: "Pemenang Laga 78" },
+            { id: "Laga_91", time: "Senin, 6 Jul - 03:00", std: "MetLife, NY/NJ", p1: "Laga_76", p2: "Laga_77", t1: "Pemenang Laga 76", t2: "Pemenang Laga 77" },
             { id: "Laga_92", time: "Senin, 6 Jul - 07:00", std: "Azteca, Mexico City", p1: "Laga_79", p2: "Laga_80", t1: "Pemenang Laga 79", t2: "Pemenang Laga 80" },
             { id: "Laga_93", time: "Selasa, 7 Jul - 02:00", std: "AT&T, Dallas", p1: "Laga_83", p2: "Laga_84", t1: "Pemenang Laga 83", t2: "Pemenang Laga 84" },
             { id: "Laga_94", time: "Selasa, 7 Jul - 07:00", std: "Lumen Field, Seattle", p1: "Laga_81", p2: "Laga_82", t1: "Pemenang Laga 81", t2: "Pemenang Laga 82" },
